@@ -10,3 +10,6 @@ __pycache__/
 
 /.env
 /logs/
+
+# Testing (Dev)
+/test.py

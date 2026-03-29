@@ -1,20 +1,18 @@
+import pytest
+
 from src.category import Category
 from src.product import Product
 
 
 class TestCategory:
+
     def test_init_name(self, sample_category):
         assert sample_category.name == "Смартфоны"
 
     def test_init_description(self, sample_category):
         assert sample_category.description == "Описание категории смартфонов"
 
-    def test_init_products_length(self, sample_category):
-        assert len(sample_category.products) == 2
-
-    def test_products_are_product_instances(self, sample_category):
-        for product in sample_category.products:
-            assert isinstance(product, Product)
+    # --- Счётчики ---
 
     def test_category_count_increments(self):
         assert Category.category_count == 0
@@ -46,3 +44,53 @@ class TestCategory:
         Category("Б", "d", [Product("Y", "d", 2.0, 1), Product("Z", "d", 3.0, 1)])
         assert Category.category_count == 2
         assert Category.product_count == 3
+
+    # --- add_product ---
+
+    def test_add_product_increases_product_count(self, sample_category):
+        """add_product() увеличивает класс-атрибут product_count на 1."""
+        before = Category.product_count
+        new_product = Product("Pixel 8", "128GB, Obsidian", 75000.0, 3)
+        sample_category.add_product(new_product)
+        assert Category.product_count == before + 1
+
+    def test_add_product_appears_in_products_string(self, sample_category):
+        """После add_product() товар отображается в строке products."""
+        new_product = Product("Pixel 8", "128GB, Obsidian", 75000.0, 3)
+        sample_category.add_product(new_product)
+        assert "Pixel 8" in sample_category.products
+
+    def test_add_product_accepts_product_instance(self):
+        """add_product() принимает объект Product и не вызывает исключений."""
+        cat = Category("Тест", "Описание", [])
+        product = Product("OnePlus 12", "256GB", 60000.0, 10)
+        cat.add_product(product)  # не должно бросать исключение
+        assert Category.product_count == 1
+
+    # --- products property ---
+
+    def test_products_returns_string(self, sample_category):
+        """Геттер products возвращает строку."""
+        assert isinstance(sample_category.products, str)
+
+    def test_products_contains_both_product_names(self, sample_category):
+        """Строка products содержит имена обоих товаров категории."""
+        products_str = sample_category.products
+        assert "Samsung Galaxy S23 Ultra" in products_str
+        assert "Iphone 15" in products_str
+
+    def test_products_format(self, sample_category):
+        """Строка products соответствует формату 'Название, X руб. Остаток: X шт.'"""
+        products_str = sample_category.products
+        assert "180000.0 руб. Остаток: 5 шт." in products_str
+        assert "210000.0 руб. Остаток: 8 шт." in products_str
+
+    def test_products_not_directly_accessible(self, sample_category):
+        """Приватный атрибут __products недоступен напрямую снаружи."""
+        with pytest.raises(AttributeError):
+            _ = sample_category.__products  # noqa: WPS112
+
+    def test_empty_category_products_is_empty_string(self):
+        """Геттер products для пустой категории возвращает пустую строку."""
+        cat = Category("Пустая", "Описание", [])
+        assert cat.products == ""

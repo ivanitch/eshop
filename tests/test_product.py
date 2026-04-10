@@ -29,53 +29,85 @@ class TestProduct:
         assert p1.name != p2.name
         assert p1.price != p2.price
 
+    # --- __str__ ---
+
+    def test_str_returns_string(self, sample_product):
+        """__str__ возвращает строку."""
+        assert isinstance(str(sample_product), str)
+
+    def test_str_format(self, sample_product):
+        """__str__ возвращает строку в формате 'Название, X руб. Остаток: X шт.'"""
+        expected = "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт."
+        assert str(sample_product) == expected
+
+    def test_str_reflects_updated_quantity(self, sample_product):
+        """__str__ отображает актуальное количество после изменения."""
+        sample_product.quantity = 10
+        assert "Остаток: 10 шт." in str(sample_product)
+
+    # --- __add__ ---
+
+    def test_add_returns_float(self, sample_product):
+        """__add__ возвращает числовое значение."""
+        p2 = Product("Iphone 15", "512GB", 210000.0, 8)
+        result = sample_product + p2
+        assert isinstance(result, (int, float))
+
+    def test_add_correct_value(self):
+        """__add__ возвращает сумму произведений цены на количество."""
+        a = Product("A", "desc", 100.0, 10)
+        b = Product("B", "desc", 200.0, 2)
+        assert a + b == 1400.0
+
+    def test_add_is_commutative(self):
+        """Сложение коммутативно: a + b == b + a."""
+        a = Product("A", "desc", 100.0, 10)
+        b = Product("B", "desc", 200.0, 2)
+        assert a + b == b + a
+
+    def test_add_single_item_products(self):
+        """__add__ корректно считает, когда quantity == 1."""
+        a = Product("A", "desc", 500.0, 1)
+        b = Product("B", "desc", 300.0, 1)
+        assert a + b == 800.0
+
     # --- геттер цены ---
 
     def test_price_getter_returns_correct_value(self, sample_product):
-        """Геттер price возвращает значение приватного атрибута."""
         assert sample_product.price == 180000.0
 
     def test_price_private_attribute_not_accessible(self, sample_product):
-        """Приватный атрибут __price недоступен напрямую снаружи."""
         with pytest.raises(AttributeError):
             _ = sample_product.__price  # noqa: WPS112
 
     # --- сеттер цены ---
 
     def test_price_setter_updates_valid_price(self, sample_product):
-        """Сеттер принимает положительную цену и обновляет атрибут."""
         sample_product.price = 200000.0
         assert sample_product.price == 200000.0
 
     def test_price_setter_rejects_zero(self, sample_product, capsys):
-        """Сеттер не обновляет цену при значении 0 и выводит сообщение."""
         sample_product.price = 0
         captured = capsys.readouterr()
         assert sample_product.price == 180000.0
         assert "Цена не должна быть нулевая или отрицательная" in captured.out
 
     def test_price_setter_rejects_negative(self, sample_product, capsys):
-        """Сеттер не обновляет цену при отрицательном значении и выводит сообщение."""
         sample_product.price = -500.0
         captured = capsys.readouterr()
         assert sample_product.price == 180000.0
         assert "Цена не должна быть нулевая или отрицательная" in captured.out
 
     def test_price_setter_accepts_price_on_init(self):
-        """Цена корректно устанавливается через сеттер при создании объекта."""
         p = Product("Test", "desc", 99.99, 1)
         assert p.price == 99.99
 
-    # --- подтверждение снижения цены ---
-
     def test_price_setter_lower_price_confirmed(self, sample_product, monkeypatch):
-        """При снижении цены и подтверждении 'y' цена обновляется."""
         monkeypatch.setattr("builtins.input", lambda _: "y")
         sample_product.price = 100000.0
         assert sample_product.price == 100000.0
 
     def test_price_setter_lower_price_rejected(self, sample_product, monkeypatch):
-        """При снижении цены и отказе ('n') цена остаётся прежней."""
         monkeypatch.setattr("builtins.input", lambda _: "n")
         sample_product.price = 100000.0
         assert sample_product.price == 180000.0
@@ -83,13 +115,11 @@ class TestProduct:
     # --- new_product ---
 
     def test_new_product_returns_product_instance(self):
-        """new_product() возвращает объект класса Product."""
         data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "quantity": 3}
         p = Product.new_product(data)
         assert isinstance(p, Product)
 
     def test_new_product_sets_correct_attributes(self):
-        """new_product() корректно устанавливает все атрибуты товара."""
         data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "quantity": 3}
         p = Product.new_product(data)
         assert p.name == "Xiaomi 14"
@@ -97,10 +127,7 @@ class TestProduct:
         assert p.price == 50000.0
         assert p.quantity == 3
 
-    # --- дедупликация через new_product ---
-
     def test_new_product_merges_duplicate_quantities(self):
-        """Если товар с таким именем уже есть, количества суммируются."""
         existing = Product("Xiaomi 14", "256GB", 50000.0, 3)
         data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "quantity": 7}
         result = Product.new_product(data, existing_products=[existing])
@@ -108,7 +135,6 @@ class TestProduct:
         assert result.quantity == 10
 
     def test_new_product_takes_higher_price_on_conflict(self, monkeypatch):
-        """При конфликте цен выбирается более высокая цена."""
         monkeypatch.setattr("builtins.input", lambda _: "y")
         existing = Product("Xiaomi 14", "256GB", 50000.0, 3)
         data = {"name": "Xiaomi 14", "description": "256GB", "price": 70000.0, "quantity": 2}
@@ -116,7 +142,6 @@ class TestProduct:
         assert result.price == 70000.0
 
     def test_new_product_no_duplicate_creates_new(self):
-        """Если товара с таким именем нет, создаётся новый объект."""
         existing = Product("Xiaomi 14", "256GB", 50000.0, 3)
         data = {"name": "iPhone 15", "description": "128GB", "price": 90000.0, "quantity": 1}
         result = Product.new_product(data, existing_products=[existing])

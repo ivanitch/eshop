@@ -10,6 +10,12 @@ class Product:
         self.price = price  # через сеттер
         self.quantity = quantity
 
+    def __str__(self) -> str:
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
+
+    def __add__(self, other: "Product") -> float:
+        return self.price * self.quantity + other.price * other.quantity
+
     @property
     def price(self) -> float:
         return self.__price
@@ -29,17 +35,12 @@ class Product:
 
     @classmethod
     def new_product(cls, product_dict: dict, existing_products: list | None = None) -> "Product":
-        """Создаёт и возвращает объект Product из словаря с параметрами товара.
-
-        Доп. задание 3: если передан список existing_products и товар с таким же
-        именем уже есть — суммирует количество и выбирает максимальную цену.
-        """
+        """Создаёт и возвращает объект Product из словаря с параметрами товара."""
         name = product_dict["name"]
         description = product_dict["description"]
         price = float(product_dict["price"])
         quantity = int(product_dict["quantity"])
 
-        # * Доп. задание 3: проверка дубликатов по имени
         if existing_products:
             for product in existing_products:
                 if product.name == name:

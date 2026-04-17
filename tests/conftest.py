@@ -13,11 +13,46 @@ def reset_category_counters():
 
 
 @pytest.fixture
-def sample_product():
-    return Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
+def sample_product(product_factory):
+    return product_factory()
 
 
 @pytest.fixture
-def sample_category(sample_product):
-    product_2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
-    return Category("Смартфоны", "Описание категории смартфонов", [sample_product, product_2])
+def sample_category(product_factory, category_factory):
+    product_1 = product_factory()
+    product_2 = product_factory(name="Iphone 15", description="512GB, Gray space", price=210000.0, quantity=8)
+    return category_factory(products=[product_1, product_2])
+
+
+@pytest.fixture
+def product_factory():
+    """Фабрика для создания продуктов с дефолтными значениями"""
+
+    def _make_product(**kwargs):
+        params = {
+            "name": "Samsung Galaxy S23 Ultra",
+            "description": "256GB, Серый цвет, 200MP камера",
+            "price": 180000.0,
+            "quantity": 5,
+        }
+        params.update(kwargs)
+        return Product(**params)
+
+    return _make_product
+
+
+@pytest.fixture
+def category_factory(product_factory):
+    def _make_category(**kwargs):
+        # Если продукты не переданы, создаем один по умолчанию
+        if "products" not in kwargs:
+            kwargs["products"] = [product_factory()]
+
+        params = {
+            "name": "Смартфоны",
+            "description": "Описание категории",
+        }
+        params.update(kwargs)
+        return Category(**params)
+
+    return _make_category

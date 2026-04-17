@@ -5,16 +5,10 @@ from src.product import Product
 
 class TestProduct:
 
-    def test_init_name(self, sample_product):
+    def test_init_product(self, sample_product):
         assert sample_product.name == "Samsung Galaxy S23 Ultra"
-
-    def test_init_description(self, sample_product):
         assert sample_product.description == "256GB, Серый цвет, 200MP камера"
-
-    def test_init_price(self, sample_product):
         assert sample_product.price == 180000.0
-
-    def test_init_quantity(self, sample_product):
         assert sample_product.quantity == 5
 
     def test_price_is_float(self, sample_product):
@@ -23,9 +17,9 @@ class TestProduct:
     def test_quantity_is_int(self, sample_product):
         assert isinstance(sample_product.quantity, int)
 
-    def test_multiple_products_are_independent(self):
-        p1 = Product("A", "desc a", 100.0, 1)
-        p2 = Product("B", "desc b", 200.0, 2)
+    def test_multiple_products_are_independent(self, product_factory):
+        p1 = product_factory(name="A", description="desc a", price=100.0, quantity=1)
+        p2 = product_factory(name="B", description="desc b", price=200.0, quantity=2)
         assert p1.name != p2.name
         assert p1.price != p2.price
 
@@ -47,29 +41,29 @@ class TestProduct:
 
     # --- __add__ ---
 
-    def test_add_returns_float(self, sample_product):
+    def test_add_returns_float(self, product_factory, sample_product):
         """__add__ возвращает числовое значение."""
-        p2 = Product("Iphone 15", "512GB", 210000.0, 8)
+        p2 = product_factory(name="Iphone 15", description="512GB", price=210000.0, quantity=8)
         result = sample_product + p2
         assert isinstance(result, (int, float))
 
-    def test_add_correct_value(self):
+    def test_add_correct_value(self, product_factory):
         """__add__ возвращает сумму произведений цены на количество."""
-        a = Product("A", "desc", 100.0, 10)
-        b = Product("B", "desc", 200.0, 2)
+        a = product_factory(name="A", description="desc A", price=100.0, quantity=10)
+        b = product_factory(name="B", description="desc B", price=200.0, quantity=2)
         assert a + b == 1400.0
 
-    def test_add_is_commutative(self):
+    def test_add_is_commutative(self, product_factory):
         """Сложение коммутативно: a + b == b + a."""
-        a = Product("A", "desc", 100.0, 10)
-        b = Product("B", "desc", 200.0, 2)
+        a = product_factory(name="A", description="desc A", price=100.0, quantity=10)
+        b = product_factory(name="B", description="desc B", price=200.0, quantity=2)
         assert a + b == b + a
 
-    def test_add_single_item_products(self):
+    def test_add_single_item_products(self, product_factory):
         """__add__ корректно считает, когда quantity == 1."""
-        a = Product("A", "desc", 500.0, 1)
-        b = Product("B", "desc", 300.0, 1)
-        assert a + b == 800.0
+        a = product_factory(name="A", description="desc A", price=100.0, quantity=1)
+        b = product_factory(name="B", description="desc B", price=200.0, quantity=1)
+        assert a + b == 300.0
 
     # --- геттер цены ---
 

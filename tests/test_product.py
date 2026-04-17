@@ -65,6 +65,34 @@ class TestProduct:
         b = product_factory(name="B", description="desc B", price=200.0, quantity=1)
         assert a + b == 300.0
 
+    def test_add_different_types_raises_type_error(self, product_factory, lawngrass_factory):
+        """__add__ выбрасывает TypeError при сложении объектов разных классов."""
+        product = product_factory()
+        grass = lawngrass_factory()
+        with pytest.raises(TypeError):
+            _ = product + grass
+
+    def test_add_smartphone_and_lawngrass_raises_type_error(self, smartphone_factory, lawngrass_factory):
+        """__add__ выбрасывает TypeError при сложении Smartphone и LawnGrass."""
+        smartphone = smartphone_factory()
+        grass = lawngrass_factory()
+        with pytest.raises(TypeError):
+            _ = smartphone + grass
+
+    def test_add_same_type_smartphones_works(self, smartphone_factory):
+        """__add__ работает корректно для двух объектов Smartphone."""
+        s1 = smartphone_factory(price=180000.0, quantity=5)
+        s2 = smartphone_factory(name="Iphone 15", price=210000.0, quantity=8)
+        result = s1 + s2
+        assert result == 180000.0 * 5 + 210000.0 * 8
+
+    def test_add_same_type_lawngrass_works(self, lawngrass_factory):
+        """__add__ работает корректно для двух объектов LawnGrass."""
+        g1 = lawngrass_factory(price=500.0, quantity=20)
+        g2 = lawngrass_factory(name="Газонная трава 2", price=450.0, quantity=15)
+        result = g1 + g2
+        assert result == 500.0 * 20 + 450.0 * 15
+
     # --- геттер цены ---
 
     def test_price_getter_returns_correct_value(self, sample_product):
@@ -92,8 +120,8 @@ class TestProduct:
         assert sample_product.price == 180000.0
         assert "Цена не должна быть нулевая или отрицательная" in captured.out
 
-    def test_price_setter_accepts_price_on_init(self):
-        p = Product("Test", "desc", 99.99, 1)
+    def test_price_setter_accepts_price_on_init(self, product_factory):
+        p = product_factory(name="Test", description="desc", price=99.99, quantity=1)
         assert p.price == 99.99
 
     def test_price_setter_lower_price_confirmed(self, sample_product, monkeypatch):
@@ -109,35 +137,35 @@ class TestProduct:
     # --- new_product ---
 
     def test_new_product_returns_product_instance(self):
-        data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "quantity": 3}
+        data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "color": "black", "quantity": 3}
         p = Product.new_product(data)
         assert isinstance(p, Product)
 
     def test_new_product_sets_correct_attributes(self):
-        data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "quantity": 3}
+        data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "color": "black", "quantity": 3}
         p = Product.new_product(data)
         assert p.name == "Xiaomi 14"
         assert p.description == "256GB"
         assert p.price == 50000.0
         assert p.quantity == 3
 
-    def test_new_product_merges_duplicate_quantities(self):
-        existing = Product("Xiaomi 14", "256GB", 50000.0, 3)
-        data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "quantity": 7}
+    def test_new_product_merges_duplicate_quantities(self, product_factory):
+        existing = product_factory(name="Xiaomi 14", description="256GB", price=50000.0, quantity=3)
+        data = {"name": "Xiaomi 14", "description": "256GB", "price": 50000.0, "color": "black", "quantity": 7}
         result = Product.new_product(data, existing_products=[existing])
         assert result is existing
         assert result.quantity == 10
 
-    def test_new_product_takes_higher_price_on_conflict(self, monkeypatch):
+    def test_new_product_takes_higher_price_on_conflict(self, product_factory, monkeypatch):
         monkeypatch.setattr("builtins.input", lambda _: "y")
-        existing = Product("Xiaomi 14", "256GB", 50000.0, 3)
-        data = {"name": "Xiaomi 14", "description": "256GB", "price": 70000.0, "quantity": 2}
+        existing = product_factory(name="Xiaomi 14", description="256GB", price=50000.0, quantity=3)
+        data = {"name": "Xiaomi 14", "description": "256GB", "price": 70000.0, "color": "black", "quantity": 2}
         result = Product.new_product(data, existing_products=[existing])
         assert result.price == 70000.0
 
-    def test_new_product_no_duplicate_creates_new(self):
-        existing = Product("Xiaomi 14", "256GB", 50000.0, 3)
-        data = {"name": "iPhone 15", "description": "128GB", "price": 90000.0, "quantity": 1}
+    def test_new_product_no_duplicate_creates_new(self, product_factory):
+        existing = product_factory(name="Xiaomi 14", description="256GB", price=50000.0, quantity=3)
+        data = {"name": "iPhone 15", "description": "128GB", "price": 90000.0, "color": "black", "quantity": 1}
         result = Product.new_product(data, existing_products=[existing])
         assert result is not existing
         assert result.name == "iPhone 15"

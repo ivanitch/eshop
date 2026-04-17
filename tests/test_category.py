@@ -1,3 +1,5 @@
+import pytest
+
 from src.category import Category
 
 
@@ -100,6 +102,52 @@ class TestCategory:
         product = product_factory(name="OnePlus 12", description="256GB", price=60000.0, quantity=10)
         cat.add_product(product)
         assert Category.product_count == 1
+
+    def test_add_product_accepts_smartphone(self, category_factory, smartphone_factory):
+        """add_product принимает объект Smartphone как наследника Product."""
+        cat = category_factory(name="Смартфоны", description="Описание", products=[])
+        smartphone = smartphone_factory()
+        cat.add_product(smartphone)
+        assert Category.product_count == 1
+
+    def test_add_product_accepts_lawngrass(self, category_factory, lawngrass_factory):
+        """add_product принимает объект LawnGrass как наследника Product."""
+        cat = category_factory(name="Трава", description="Описание", products=[])
+        grass = lawngrass_factory()
+        cat.add_product(grass)
+        assert Category.product_count == 1
+
+    def test_add_product_rejects_string(self, category_factory):
+        """add_product выбрасывает TypeError при передаче строки."""
+        cat = category_factory(name="Тест", description="Описание", products=[])
+        with pytest.raises(TypeError):
+            cat.add_product("не продукт")
+
+    def test_add_product_rejects_int(self, category_factory):
+        """add_product выбрасывает TypeError при передаче числа."""
+        cat = category_factory(name="Тест", description="Описание", products=[])
+        with pytest.raises(TypeError):
+            cat.add_product(42)
+
+    def test_add_product_rejects_dict(self, category_factory):
+        """add_product выбрасывает TypeError при передаче словаря."""
+        cat = category_factory(name="Тест", description="Описание", products=[])
+        with pytest.raises(TypeError):
+            cat.add_product({"name": "Продукт"})
+
+    def test_add_product_rejects_none(self, category_factory):
+        """add_product выбрасывает TypeError при передаче None."""
+        cat = category_factory(name="Тест", description="Описание", products=[])
+        with pytest.raises(TypeError):
+            cat.add_product(None)
+
+    def test_add_product_does_not_increase_count_on_error(self, category_factory):
+        """При ошибке product_count не увеличивается."""
+        cat = category_factory(name="Тест", description="Описание", products=[])
+        before = Category.product_count
+        with pytest.raises(TypeError):
+            cat.add_product("не продукт")
+        assert Category.product_count == before
 
     # --- products property ---
 

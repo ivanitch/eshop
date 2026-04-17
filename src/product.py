@@ -2,18 +2,24 @@ class Product:
     name: str
     description: str
     __price: float
+    color: str
     quantity: int
 
-    def __init__(self, name: str, description: str, price: float, quantity: int) -> None:
+    def __init__(self, name: str, description: str, price: float, color: str, quantity: int) -> None:
         self.name = name
         self.description = description
         self.price = price  # через сеттер
+        self.color = color
         self.quantity = quantity
 
     def __str__(self) -> str:
         return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
 
     def __add__(self, other: "Product") -> float:
+        if type(self) is not type(other):
+            raise TypeError(
+                f"Нельзя складывать продукты разных типов:" f" {type(self).__name__} и {type(other).__name__}"
+            )
         return self.price * self.quantity + other.price * other.quantity
 
     @property
@@ -39,6 +45,7 @@ class Product:
         name = product_dict["name"]
         description = product_dict["description"]
         price = float(product_dict["price"])
+        color = product_dict["color"]
         quantity = int(product_dict["quantity"])
 
         if existing_products:
@@ -49,4 +56,4 @@ class Product:
                         product.price = price
                     return product
 
-        return cls(name, description, price, quantity)
+        return cls(name, description, price, color, quantity)

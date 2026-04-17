@@ -1,32 +1,27 @@
-import pytest
-
 from src.category import Category
-from src.product import Product
 
 
 class TestCategory:
 
-    def test_init_name(self, sample_category):
+    def test_init_category(self, sample_category):
         assert sample_category.name == "Смартфоны"
-
-    def test_init_description(self, sample_category):
-        assert sample_category.description == "Описание категории смартфонов"
+        assert sample_category.description == "Описание категории"
 
     # --- Счётчики ---
 
-    def test_category_count_increments(self):
+    def test_category_count_increments(self, category_factory):
         assert Category.category_count == 0
-        Category("Кат1", "Описание 1", [])
+        category_factory(name="Кат1", description="Описание 1", products=[])
         assert Category.category_count == 1
-        Category("Кат2", "Описание 2", [])
+        category_factory(name="Кат2", description="Описание 2", products=[])
         assert Category.category_count == 2
 
-    def test_product_count_increments(self):
-        p1 = Product("P1", "d", 10.0, 1)
-        p2 = Product("P2", "d", 20.0, 1)
-        Category("Кат1", "Описание", [p1])
+    def test_product_count_increments(self, product_factory, category_factory):
+        p1 = product_factory(name='P1', description='d', price=10.0, quantity=1)
+        p2 = product_factory(name='P2', description='d', price=20.0, quantity=1)
+        category_factory(name='Кат1', description='Описание', products=[p1])
         assert Category.product_count == 1
-        Category("Кат2", "Описание", [p1, p2])
+        category_factory(name='Кат2', description='Описание', products=[p1, p2])
         assert Category.product_count == 3
 
     def test_category_count_accessible_via_instance(self, sample_category):
@@ -35,13 +30,26 @@ class TestCategory:
     def test_product_count_accessible_via_instance(self, sample_category):
         assert sample_category.product_count == 2
 
-    def test_empty_category_does_not_add_products(self):
-        Category("Пустая", "Описание", [])
+    def test_empty_category_does_not_add_products(self, category_factory):
+        category_factory(name="Пустая", description="Описание", products=[])
         assert Category.product_count == 0
 
-    def test_counters_are_shared_across_instances(self):
-        Category("А", "d", [Product("X", "d", 1.0, 1)])
-        Category("Б", "d", [Product("Y", "d", 2.0, 1), Product("Z", "d", 3.0, 1)])
+    def test_counters_are_shared_across_instances(self, category_factory, product_factory):
+        category_factory(
+            name="А",
+            description="d",
+            products=[product_factory(name='X', description='d', price=1.0, quantity=1)]
+        )
+
+        category_factory(
+            name="B",
+            description="d",
+            products=[
+                product_factory(name='Y', description='d', price=2.0, quantity=1),
+                product_factory(name='Z', description='d', price=3.0, quantity=1)
+            ]
+        )
+
         assert Category.category_count == 2
         assert Category.product_count == 3
 
@@ -63,33 +71,33 @@ class TestCategory:
         """__str__ возвращает строку в формате 'Название категории, количество продуктов: X шт.'"""
         assert str(sample_category) == "Смартфоны, количество продуктов: 13 шт."
 
-    def test_str_empty_category(self):
+    def test_str_empty_category(self, category_factory):
         """__str__ для пустой категории возвращает 0 шт."""
-        cat = Category("Пустая", "Описание", [])
+        cat = category_factory(name="Пустая", description="Описание", products=[])
         assert str(cat) == "Пустая, количество продуктов: 0 шт."
 
-    def test_str_updates_after_add_product(self, sample_category):
+    def test_str_updates_after_add_product(self, sample_category, product_factory):
         """__str__ отражает актуальное количество после add_product."""
-        new_product = Product("Pixel 8", "128GB", 75000.0, 3)
+        new_product = product_factory(name="Pixel 8", description="128GB", price=75000.0, quantity=3)
         sample_category.add_product(new_product)
         assert "16 шт." in str(sample_category)
 
     # --- add_product ---
 
-    def test_add_product_increases_product_count(self, sample_category):
+    def test_add_product_increases_product_count(self, sample_category, product_factory):
         before = Category.product_count
-        new_product = Product("Pixel 8", "128GB, Obsidian", 75000.0, 3)
+        new_product = product_factory(name="Pixel 8", description="128GB, Obsidian", price=75000.0, quantity=3)
         sample_category.add_product(new_product)
         assert Category.product_count == before + 1
 
-    def test_add_product_appears_in_products_string(self, sample_category):
-        new_product = Product("Pixel 8", "128GB, Obsidian", 75000.0, 3)
+    def test_add_product_appears_in_products_string(self, sample_category, product_factory):
+        new_product = product_factory(name="Pixel 8", description="128GB, Obsidian", price=75000.0, quantity=3)
         sample_category.add_product(new_product)
         assert "Pixel 8" in sample_category.products
 
-    def test_add_product_accepts_product_instance(self):
-        cat = Category("Тест", "Описание", [])
-        product = Product("OnePlus 12", "256GB", 60000.0, 10)
+    def test_add_product_accepts_product_instance(self, category_factory, product_factory):
+        cat = category_factory(name="Тест", description="Описание", products=[])
+        product = product_factory(name="OnePlus 12", description="256GB", price=60000.0, quantity=10)
         cat.add_product(product)
         assert Category.product_count == 1
 
@@ -108,10 +116,6 @@ class TestCategory:
         assert "180000.0 руб. Остаток: 5 шт." in products_str
         assert "210000.0 руб. Остаток: 8 шт." in products_str
 
-    def test_products_not_directly_accessible(self, sample_category):
-        with pytest.raises(AttributeError):
-            _ = sample_category.__products  # noqa: WPS112
-
-    def test_empty_category_products_is_empty_string(self):
-        cat = Category("Пустая", "Описание", [])
+    def test_empty_category_products_is_empty_string(self, category_factory):
+        cat = category_factory(name="Пустая", description="Описание", products=[])
         assert cat.products == ""

@@ -104,8 +104,11 @@ pytest tests -v --cov=src --cov-report=html
 ### Просмотр покрытия
 
 ```bash
-coverage report          # таблица в консоли
-coverage html            # HTML-отчёт в папке htmlcov/ с интерактивным сайтом
+coverage report                 # таблица в консоли
+
+coverage report > coverage.txt  # направить отчёт в файл `coverage.txt`
+
+coverage html                   # HTML-отчёт в папке htmlcov/ с интерактивным сайтом (htmlcov/index.html)
 ```
 
 ---

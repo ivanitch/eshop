@@ -22,7 +22,17 @@ class Category:
         return f"{self.name}, количество продуктов: {total_quantity} шт."
 
     def add_product(self, product: Product) -> None:
-        """Добавляет продукт в приватный список и увеличивает счётчик товаров."""
+        """Добавляет продукт в приватный список и увеличивает счётчик товаров.
+
+        Принимает только объекты класса Product и его наследников.
+        Raises:
+            TypeError: если переданный объект не является экземпляром Product.
+        """
+        if not isinstance(product, Product):
+            raise TypeError(
+                f"Можно добавлять только объекты класса Product и его наследников, "
+                f"получен: {type(product).__name__}"
+            )
         self.__products.append(product)
         Category.product_count += 1
 

@@ -1,9 +1,12 @@
-Name                Stmts   Miss  Cover
----------------------------------------
-src/__init__.py         0      0   100%
-src/category.py        24      0   100%
-src/lawngrass.py        8      0   100%
-src/product.py         46      0   100%
-src/smartphone.py      10      0   100%
----------------------------------------
-TOTAL                  88      0   100%
+Name                  Stmts   Miss  Cover
+-----------------------------------------
+src/__init__.py           0      0   100%
+src/base_product.py      12      3    75%
+src/category.py          25      0   100%
+src/lawngrass.py          8      0   100%
+src/mixins.py             6      0   100%
+src/order.py             13      0   100%
+src/product.py           49      0   100%
+src/smartphone.py        10      0   100%
+-----------------------------------------
+TOTAL                   123      3    98%

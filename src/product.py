@@ -1,4 +1,8 @@
-class Product:
+from src.base_product import BaseProduct
+from src.mixins import LogMixin
+
+
+class Product(LogMixin, BaseProduct):
     name: str
     description: str
     __price: float
@@ -11,6 +15,7 @@ class Product:
         self.price = price  # через сеттер
         self.color = color
         self.quantity = quantity
+        super().__init__()
 
     def __str__(self) -> str:
         return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."

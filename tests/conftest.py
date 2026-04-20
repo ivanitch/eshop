@@ -4,6 +4,7 @@ from src.category import Category
 from src.product import Product
 from src.smartphone import Smartphone
 from src.lawngrass import LawnGrass
+from src.order import Order
 
 
 @pytest.fixture(autouse=True)
@@ -110,3 +111,13 @@ def category_factory(product_factory):
         return Category(**params)
 
     return _make_category
+
+
+@pytest.fixture
+def order_factory(product_factory):
+    def _make_order(**kwargs):
+        product = kwargs.pop("product", None) or product_factory()
+        quantity = kwargs.pop("quantity", 2)
+        return Order(product=product, quantity=quantity)
+
+    return _make_order

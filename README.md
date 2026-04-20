@@ -9,6 +9,9 @@
 - Класс `Product` — товар с названием, описанием, ценой, цветом и количеством на складе
 - Класс `Smartphone` — наследник `Product`, расширен атрибутами: производительность, модель, объём памяти
 - Класс `LawnGrass` — наследник `Product`, расширен атрибутами: страна-производитель, срок прорастания
+- Класс `BaseProduct` — абстрактный базовый класс, задаёт интерфейс для всех продуктов (обязательные методы `__str__` и `__add__`)
+- Класс `LogMixin` — миксин, который при создании любого объекта-продукта автоматически выводит в консоль его класс и параметры
+- Класс `Order` — заказ, содержит ссылку на товар, количество и итоговую стоимость
 
 ## Реализованные возможности
 
@@ -58,17 +61,25 @@
 .
 ├── src/
 │   ├── __init__.py
+│   ├── base_product.py    # абстрактный базовый класс BaseProduct и BaseEntityWithStr
 │   ├── category.py        # класс категории товаров
+│   ├── lawngrass.py       # класс газонной травы (наследник Product)
+│   ├── mixins.py          # класс-миксин LogMixin
+│   ├── order.py           # класс заказа Order
 │   ├── product.py         # базовый класс товара
-│   ├── smartphone.py      # класс смартфона (наследник Product)
-│   └── lawngrass.py       # класс газонной травы (наследник Product)
+│   └── smartphone.py      # класс смартфона (наследник Product)
+│
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py
+│   ├── test_base_product.py
 │   ├── test_category.py
+│   ├── test_lawngrass.py
+│   ├── test_mixins.py
+│   ├── test_order.py
 │   ├── test_product.py
-│   ├── test_smartphone.py
-│   └── test_lawngrass.py
+│   └── test_smartphone.py
+│
 ├── .flake8
 ├── .gitignore
 ├── lint.sh
@@ -85,30 +96,50 @@
 ```bash
 git clone git@github.com:ivanitch/eshop.git
 cd eshop
-poetry shell
+
 poetry install
+
+poetry run python main.py
 ```
 
 ## Запуск тестов
 
 ```bash
-pytest
+poetry run pytest
 
 # Подробный вывод
-pytest -v
+poetry run pytest -v
 
 # С отчётом о покрытии кода
-pytest tests -v --cov=src --cov-report=html
+poetry run pytest tests -v --cov=src --cov-report=html
 ```
 
 ### Просмотр покрытия
 
 ```bash
-coverage report                 # таблица в консоли
+poetry run coverage report                 # таблица в консоли
 
-coverage report > coverage.txt  # направить отчёт в файл `coverage.txt`
+poetry run coverage report > coverage.txt  # направить отчёт в файл `coverage.txt`
 
-coverage html                   # HTML-отчёт в папке htmlcov/ с интерактивным сайтом (htmlcov/index.html)
+poetry run coverage html                   # HTML-отчёт в папке htmlcov/ с интерактивным сайтом (htmlcov/index.html)
+```
+
+Файл `coverage.txt`:
+
+```
+Name                  Stmts   Miss  Cover
+-----------------------------------------
+src/__init__.py           0      0   100%
+src/base_product.py      12      3    75%
+src/category.py          25      0   100%
+src/lawngrass.py          8      0   100%
+src/mixins.py             6      0   100%
+src/order.py             13      0   100%
+src/product.py           49      0   100%
+src/smartphone.py        10      0   100%
+-----------------------------------------
+TOTAL                   123      3    98%
+
 ```
 
 ---
@@ -158,14 +189,14 @@ except TypeError as e:
 ## Кодстайл
 
 ```bash
-flake8 src tests          # линтер
-black src tests           # форматирование
-isort src tests           # сортировка импортов
-mypy src                  # проверка типов
+poetry run flake8 src tests          # линтер
+poetry run black src tests           # форматирование
+poetry run isort src tests           # сортировка импортов
+poetry run mypy src                  # проверка типов
 ```
 
 Или запустить все линтеры одной командой:
 
 ```bash
-./lint.sh
+poetry run ./lint.sh
 ```

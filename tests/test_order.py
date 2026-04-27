@@ -1,5 +1,4 @@
 import pytest
-from src.order import Order
 
 
 class TestOrder:

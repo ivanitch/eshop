@@ -23,7 +23,25 @@ class TestProduct:
         assert p1.name != p2.name
         assert p1.price != p2.price
 
-    # --- __str__ ---
+    def test_zero_quantity_raises_value_error(self):
+        """При создании продукта с quantity=0 выбрасывается ValueError."""
+        with pytest.raises(ValueError):
+            Product("Бракованный", "Описание", 1000.0, "red", 0)
+
+    def test_zero_quantity_error_message(self):
+        """Сообщение ValueError содержит корректный текст."""
+        with pytest.raises(ValueError, match="нулевым количеством"):
+            Product("Бракованный", "Описание", 1000.0, "red", 0)
+
+    def test_positive_quantity_does_not_raise(self, product_factory):
+        """Продукт с положительным quantity создаётся без ошибок."""
+        p = product_factory(quantity=1)
+        assert p.quantity == 1
+
+    def test_negative_quantity_does_not_raise(self, product_factory):
+        """Отрицательное количество не блокируется — только нулевое."""
+        p = product_factory(quantity=-1)
+        assert p.quantity == -1
 
     def test_str_returns_string(self, sample_product):
         """__str__ возвращает строку."""
@@ -38,8 +56,6 @@ class TestProduct:
         """__str__ отображает актуальное количество после изменения."""
         sample_product.quantity = 10
         assert "Остаток: 10 шт." in str(sample_product)
-
-    # --- __add__ ---
 
     def test_add_returns_float(self, product_factory, sample_product):
         """__add__ возвращает числовое значение."""

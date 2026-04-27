@@ -1,4 +1,5 @@
 from src.base_product import BaseProduct
+from src.exceptions import ZeroQuantityError
 from src.mixins import LogMixin
 
 
@@ -10,11 +11,15 @@ class Product(LogMixin, BaseProduct):
     quantity: int
 
     def __init__(self, name: str, description: str, price: float, color: str, quantity: int) -> None:
+        if quantity == 0:
+            raise ZeroQuantityError
+
         self.name = name
         self.description = description
         self.price = price  # через сеттер
         self.color = color
         self.quantity = quantity
+
         super().__init__()
 
     def __str__(self) -> str:

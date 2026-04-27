@@ -9,8 +9,6 @@ class TestCategory:
         assert sample_category.name == "Смартфоны"
         assert sample_category.description == "Описание категории"
 
-    # --- Счётчики ---
-
     def test_category_count_increments(self, category_factory):
         assert Category.category_count == 0
         category_factory(name="Кат1", description="Описание 1", products=[])
@@ -55,8 +53,6 @@ class TestCategory:
         assert Category.category_count == 2
         assert Category.product_count == 3
 
-    # --- __str__ ---
-
     def test_str_returns_string(self, sample_category):
         """__str__ возвращает строку."""
         assert isinstance(str(sample_category), str)
@@ -83,8 +79,6 @@ class TestCategory:
         new_product = product_factory(name="Pixel 8", description="128GB", price=75000.0, quantity=3)
         sample_category.add_product(new_product)
         assert "16 шт." in str(sample_category)
-
-    # --- add_product ---
 
     def test_add_product_increases_product_count(self, sample_category, product_factory):
         before = Category.product_count
@@ -149,8 +143,6 @@ class TestCategory:
             cat.add_product("не продукт")
         assert Category.product_count == before
 
-    # --- products property ---
-
     def test_products_returns_string(self, sample_category):
         assert isinstance(sample_category.products, str)
 
@@ -167,3 +159,34 @@ class TestCategory:
     def test_empty_category_products_is_empty_string(self, category_factory):
         cat = category_factory(name="Пустая", description="Описание", products=[])
         assert cat.products == ""
+
+    def test_middle_price_returns_float(self, sample_category):
+        """middle_price возвращает числовое значение."""
+        result = sample_category.middle_price()
+        assert isinstance(result, (int, float))
+
+    def test_middle_price_correct_value(self, product_factory, category_factory):
+        """middle_price возвращает среднее арифметическое цен (только цены, не quantity)."""
+        p1 = product_factory(name="A", description="d", price=100.0, quantity=1)
+        p2 = product_factory(name="B", description="d", price=200.0, quantity=1)
+        p3 = product_factory(name="C", description="d", price=300.0, quantity=1)
+        cat = category_factory(name="Тест", description="d", products=[p1, p2, p3])
+        assert cat.middle_price() == 200.0
+
+    def test_middle_price_single_product(self, product_factory, category_factory):
+        """middle_price для одного товара равна его цене."""
+        p = product_factory(name="A", description="d", price=500.0, quantity=10)
+        cat = category_factory(name="Тест", description="d", products=[p])
+        assert cat.middle_price() == 500.0
+
+    def test_middle_price_empty_category_returns_zero(self, category_factory):
+        """middle_price возвращает 0 для пустой категории."""
+        cat = category_factory(name="Пустая", description="Описание", products=[])
+        assert cat.middle_price() == 0
+
+    def test_middle_price_ignores_quantity(self, product_factory, category_factory):
+        """middle_price учитывает только self.price, не умножает на quantity."""
+        p1 = product_factory(name="A", description="d", price=1000.0, quantity=100)
+        p2 = product_factory(name="B", description="d", price=2000.0, quantity=1)
+        cat = category_factory(name="Тест", description="d", products=[p1, p2])
+        assert cat.middle_price() == 1500.0

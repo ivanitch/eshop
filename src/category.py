@@ -1,4 +1,5 @@
 from src.base_product import BaseEntityWithStr
+from src.exceptions import ZeroQuantityError
 from src.product import Product
 
 
@@ -23,19 +24,22 @@ class Category(BaseEntityWithStr):
         return f"{self.name}, количество продуктов: {total_quantity} шт."
 
     def add_product(self, product: Product) -> None:
-        """Добавляет продукт в приватный список и увеличивает счётчик товаров.
-
-        Принимает только объекты класса Product и его наследников.
-        Raises:
-            TypeError: если переданный объект не является экземпляром Product.
-        """
         if not isinstance(product, Product):
             raise TypeError(
                 f"Можно добавлять только объекты класса Product и его наследников, "
                 f"получен: {type(product).__name__}"
             )
-        self.__products.append(product)
-        Category.product_count += 1
+        try:
+            if product.quantity == 0:
+                raise ZeroQuantityError
+        except ZeroQuantityError as e:
+            print(e)
+        else:
+            self.__products.append(product)
+            Category.product_count += 1
+            print("Товар успешно добавлен")
+        finally:
+            print("Обработка добавления товара завершена")
 
     @property
     def products(self) -> str:
@@ -43,3 +47,10 @@ class Category(BaseEntityWithStr):
         'Название продукта, X руб. Остаток: X шт.'
         """
         return "\n".join(str(product) for product in self.__products)
+
+    def middle_price(self) -> float:
+        """Возвращает средний ценник всех товаров категории."""
+        try:
+            return sum(p.price for p in self.__products) / len(self.__products)
+        except ZeroDivisionError:
+            return 0

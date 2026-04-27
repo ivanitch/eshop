@@ -12,6 +12,7 @@
 - Класс `BaseProduct` — абстрактный базовый класс, задаёт интерфейс для всех продуктов (обязательные методы `__str__` и `__add__`)
 - Класс `LogMixin` — миксин, который при создании любого объекта-продукта автоматически выводит в консоль его класс и параметры
 - Класс `Order` — заказ, содержит ссылку на товар, количество и итоговую стоимость
+- Класс `ZeroQuantityError` — пользовательское исключение, вызываемое при попытке добавить товар с нулевым количеством
 
 ## Реализованные возможности
 
@@ -19,15 +20,22 @@
 
 - Приватный атрибут `__products` для хранения списка товаров
 - Метод `add_product(product)` — добавляет товар в категорию и увеличивает `product_count`.
-  Принимает только экземпляры `Product` или его наследников; при передаче любого другого объекта выбрасывает `TypeError`
+  Принимает только экземпляры `Product` или его наследников; при передаче любого другого объекта выбрасывает `TypeError`.
+  При добавлении товара с нулевым количеством вызывает `ZeroQuantityError` и выводит сообщение об ошибке.
+  В любом случае выводит сообщение о завершении обработки (`finally`).
+  При успешном добавлении выводит подтверждение (`else`).
 - Свойство `products` (геттер) — возвращает строку со всеми товарами в формате:
   `Название продукта, X руб. Остаток: X шт.`
+- Метод `middle_price()` — возвращает средний ценник всех товаров категории.
+  При пустой категории (деление на ноль) возвращает `0`.
 - Метод `__str__` — возвращает строку в формате:
   `Название категории, количество продуктов: X шт.`
   где X — суммарное количество всех товаров на складе
 
 ### Product
 
+- При создании товара с `quantity == 0` выбрасывается `ValueError` с сообщением
+  «Товар с нулевым количеством не может быть добавлен»
 - Приватный атрибут `__price` с геттером и сеттером через `@property`
 - Сеттер цены проверяет значение: при цене ≤ 0 выводит сообщение и не обновляет цену
 - При снижении цены запрашивает подтверждение у пользователя (`y` — принять, любой другой — отменить)
@@ -63,6 +71,7 @@
 │   ├── __init__.py
 │   ├── base_product.py    # абстрактный базовый класс BaseProduct и BaseEntityWithStr
 │   ├── category.py        # класс категории товаров
+│   ├── exceptions.py      # пользовательские исключения (ZeroQuantityError)
 │   ├── lawngrass.py       # класс газонной травы (наследник Product)
 │   ├── mixins.py          # класс-миксин LogMixin
 │   ├── order.py           # класс заказа Order
@@ -131,14 +140,15 @@ Name                  Stmts   Miss  Cover
 -----------------------------------------
 src/__init__.py           0      0   100%
 src/base_product.py      12      3    75%
-src/category.py          25      0   100%
+src/category.py          30      0   100%
+src/exceptions.py         3      0   100%
 src/lawngrass.py          8      0   100%
 src/mixins.py             6      0   100%
 src/order.py             13      0   100%
-src/product.py           49      0   100%
+src/product.py           51      0   100%
 src/smartphone.py        10      0   100%
 -----------------------------------------
-TOTAL                   123      3    98%
+TOTAL                   133      3    98%
 
 ```
 
@@ -149,41 +159,52 @@ TOTAL                   123      3    98%
 ```python
 from src.category import Category
 from src.product import Product
-from src.smartphone import Smartphone
-from src.lawngrass import LawnGrass
 
-smartphone1 = Smartphone("Samsung Galaxy S23 Ultra", "256GB", 180000.0, "Серый", 5, "High", "S23 Ultra", 256)
-smartphone2 = Smartphone("Iphone 15", "512GB", 210000.0, "Gray space", 8, "High", "15", 512)
 
-# __str__ для Smartphone
-print(str(smartphone1))
-# Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт.
+if __name__ == '__main__':
+    try:
+        product_invalid = Product(
+            "Бракованный товар",
+            "Неверное количество",
+            1000.0,
+            "green",
+            0
+        )
+    except ValueError as e:
+        print(
+            "Возникла ошибка ValueError прерывающая работу программы при попытке добавить продукт с нулевым количеством"
+        )
+    else:
+        print("Не возникла ошибка ValueError при попытке добавить продукт с нулевым количеством")
 
-# __add__ — только одинаковые классы
-print(smartphone1 + smartphone2)
-# 2580000.0  (180000 × 5 + 210000 × 8)
+    product1 = Product(
+        "Samsung Galaxy S23 Ultra",
+        "256GB, Серый цвет, 200MP камера",
+        180000.0,
+        "Серый",
+        5
+    )
+    product2 = Product(
+        "Iphone 15",
+        "512GB, Gray space",
+        210000.0,
+        "Gray",
+        8
+    )
+    product3 = Product(
+        "Xiaomi Redmi Note 11",
+        "1024GB, Синий",
+        31000.0,
+        "Синий",
+        14
+    )
 
-grass = LawnGrass("Газонная трава", "Элитная", 500.0, "Зеленый", 20, "Россия", "7 дней")
+    category1 = Category("Смартфоны", "Категория смартфонов", [product1, product2, product3])
 
-# Сложение разных типов — ошибка
-try:
-    result = smartphone1 + grass
-except TypeError as e:
-    print(e)  # Нельзя складывать продукты разных типов: Smartphone и LawnGrass
+    print(category1.middle_price())
 
-category = Category("Смартфоны", "Описание", [smartphone1, smartphone2])
-
-# __str__ для Category — суммарное количество товаров
-print(str(category))
-# Смартфоны, количество продуктов: 13 шт.
-
-# add_product — только Product и наследники
-category.add_product(smartphone2)  # OK
-
-try:
-    category.add_product("не продукт")
-except TypeError as e:
-    print(e)  # Можно добавлять только объекты класса Product и его наследников
+    category_empty = Category("Пустая категория", "Категория без продуктов", [])
+    print(category_empty.middle_price())
 ```
 
 ## Кодстайл
